@@ -147,7 +147,7 @@ We fully control the bss now.
 
 I overwrote the partysize to a big value.
 
-### The get_drink() function is quiet intresting
+### The get_drink() function
 ```c
 00000a9a  puts(data_f7f)  {"What party member is buying?"}
 00000aab  printf(data_f5f)
