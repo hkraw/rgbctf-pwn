@@ -7,7 +7,7 @@
 # HOUSE OF FORCE
 
 ### Finding the bug was actually simple
-```py
+```c
 00000ccb  *party = malloc(zx.q(*party_size) << 5)
 00000ce5  if (*party == 0)
 00000ce5      puts(data_109f)  {"You can't have a party of 0!"}
@@ -36,7 +36,7 @@
 ### There was this else condition IT never gets executed, The author said it was'nt intended. IT's just a decoy (;
 
 
-```py
+```c
 00000df2  while (true)
 00000df2      print_menu()
 00000e06      char var_d_1 = _IO_getc(stdin):0.b
@@ -60,7 +60,7 @@
 
 
 ### choose_song function just asks for no.of bytes to allocate and reads the data into it.
-```py
+```c
 000009da  puts(data_f44)  {"How long is the song name?"}
 000009eb  printf(data_f5f)
 00000a03  int64_t var_18
@@ -74,9 +74,12 @@
 ```
 
 ### singsong() function just prints the pointer which is returened by malloc ( We leak addresses using this function. )
+```c
+000009bb  return printf(data_f2e, *selected_song)  {"You sang %p so well!\n"}
+```
 
 ### The get_drink() function is quiet intresting
-```
+```c
 00000a9a  puts(data_f7f)  {"What party member is buying?"}
 00000aab  printf(data_f5f)
 00000ac3  int32_t var_18
@@ -116,7 +119,9 @@ struct party {
 the size is stored into the partysize.
 We start by giving party size zero. Giving zero malloc will return the smallest chunk. And the 
 
-```(*party + 0x18) = -1```
+```c
+(*party + 0x18) = -1
+```
 A negative value is onto the topchunk size field, which gives us House of force primitive.
 
 ```py 
