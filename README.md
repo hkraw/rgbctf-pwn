@@ -1,6 +1,6 @@
 # rgbctf-pwn
 
-`Solution script for RGBCTF soda-pop-bop pwn challenge`
+`Writeup for RGBCTF soda-pop-bop challenge`
 
 
 
@@ -320,4 +320,4 @@ attack(0x100, 'A')
 io.interactive()
 ```
 
-### thanks
+### third_blood ...
