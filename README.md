@@ -6,6 +6,7 @@
 
 # HOUSE OF FORCE
 
+#### The libc version was 2.27. And it doesn't have any checks for top chunk.
 ### Finding the bug was actually simple
 ```c
 00000ccb  *party = malloc(zx.q(*party_size) << 5)
