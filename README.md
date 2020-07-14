@@ -125,7 +125,9 @@ We start by giving party size zero. Giving zero malloc will return the smallest 
 A negative value is onto the topchunk size field, which gives us House of force primitive.
 
 ```py 
-Reference: https://heap-exploitation.dhavalkapil.com/attacks/house_of_force.html
+Reference: https://www.youtube.com/watch?v=6-Et7M7qJJg
+
+Max kamper has amazing video on house-of-force.
 ```
 
 In the sing song function malloc returns the pointer to a bss variable ```c *selected_song```
