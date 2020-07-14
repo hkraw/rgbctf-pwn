@@ -1,3 +1,3 @@
 # rgbctf-pwn
 
-`adsad`
+`Solution script for RGBCTF soda-pop-bop pwn challenge`
