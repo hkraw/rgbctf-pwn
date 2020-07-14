@@ -33,7 +33,7 @@
 00000d78          fgets(rdx_4, 0x18, stdin, rdx_4)
 00000d7d          var_c_1 = var_c_1 + 1
 ```
-There was this else condition IT never gets executed, The author said it was'nt intended. IT's just a decoy (;
+### There was this else condition IT never gets executed, The author said it was'nt intended. IT's just a decoy (;
 
 
 ```py
@@ -74,8 +74,51 @@ There was this else condition IT never gets executed, The author said it was'nt 
 ```
 
 ### singsong() function just prints the pointer which is returened by malloc ( We leak addresses using this function. )
-```py
-  return printf(data_f2e, *selected_song)  {"You sang %p so well!\n"}```
-  
+
+### The get_drink() function is quiet intresting
+```
+00000a9a  puts(data_f7f)  {"What party member is buying?"}
+00000aab  printf(data_f5f)
+00000ac3  int32_t var_18
+00000ac3  __isoc99_scanf(data_f9c, &var_18)
+00000ad2  _IO_getc(stdin)
+00000ae0  if (var_18 u>= *party_size)
+00000aeb      puts(data_f9f)  {"That member doesn't exist."}
+00000afc  else
+00000afc      puts(data_fba)  {"What are you buying?"}
+00000b08      puts(data_fcf)  {"0. Water"}
+00000b14      puts(data_fd8)  {"1. Pepsi"}
+00000b20      puts(data_fe1)  {"2. Club Mate"}
+00000b2c      puts(data_fee)  {"3. Leninade"}
+00000b3d      printf(data_f5f)
+00000b55      int32_t var_14
+00000b55      __isoc99_scanf(data_ffa, &var_14)
+00000b64      _IO_getc(stdin)
+00000b6c      if (var_14 s<= 3)
+00000b97          *(*party + (zx.q(var_18) << 5) + 0x18) = sx.q(var_14)
+00000b78      else
+00000b78          puts(data_ffd)  {"We don't have that drink."}
+```
+I will explain it later on the writeup
 
 
+### exploitation part.
+
+
+The program asks for party size which is stored into bss.
+```c
+struct party {
+    pointer_to_heap;
+    party_size;
+}
+```
+
+the size is stored into the partysize.
+We start by giving party size zero. Giving zero malloc will return the smallest chunk. And the 
+
+```(*party + 0x18) = -1```
+A negative value is onto the topchunk size field, which gives us House of force primitive.
+
+```py 
+Reference: https://heap-exploitation.dhavalkapil.com/attacks/house_of_force.html
+```
