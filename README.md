@@ -198,7 +198,7 @@ Now we change the Top chunk again to -1.
 HOUSE OF FORCE PRIMITIVE AGAIN.
 
 One_gadget constraints weren't matching so, 
-I change malloc hook to some where inside realloc and realloc hook to onegaget.
+I change malloc hook (& realloc + 8) and realloc hook to onegaget.
 
 And pop the shell.
 
