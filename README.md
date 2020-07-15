@@ -21,6 +21,10 @@
 00000dc7      printf(data_f5f)
 00000dd3      uint64_t rdx_7 = *party
 00000de8      fgets(rdx_7, 0x18, stdin, rdx_7)
+```
+This else condition is never meant to execute. the party size is either 0/1 OR > 1. The if condition inside the while(True) loop never gets false because the variable is assigned 0 at the start and checks if (var) <= party_size. Which is always true. So the loop terminates and never gets executed.
+
+```
 00000d03  else
 00000d03      int32_t var_c_1 = 0
 00000d81      while (true)
@@ -34,7 +38,6 @@
 00000d78          fgets(rdx_4, 0x18, stdin, rdx_4)
 00000d7d          var_c_1 = var_c_1 + 1
 ```
-### There was this else condition IT never gets executed, The author said it was'nt intended. IT's just a decoy (;
 
 
 ```c
